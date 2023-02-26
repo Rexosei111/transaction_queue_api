@@ -4,6 +4,9 @@ from pydantic import BaseSettings
 
 
 class Settings(BaseSettings):
+    jwt_secret: str
+    jwt_expire_time: int
+    algorithm: str
     postgres_database_url: str
 
     class Config:
