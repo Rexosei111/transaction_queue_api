@@ -1,12 +1,13 @@
 import uvicorn
 from database import create_db_tables
+from database import drop_db_tables
 from fastapi import FastAPI
 from namesCounter.router import names_counter_router
 from transactionQueue.router import transaction_queue_router
 
 app = FastAPI()
-app.include_router(names_counter_router)
-app.include_router(transaction_queue_router)
+app.include_router(names_counter_router, tags=["Names Counter"])
+app.include_router(transaction_queue_router, tags=["Transaction Queue"])
 
 
 @app.on_event("startup")

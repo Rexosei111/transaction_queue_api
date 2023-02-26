@@ -32,6 +32,16 @@ class NamesCounterRead(BaseModel):
         orm_mode = True
 
 
+class LoginRead(BaseModel):
+    idcounter: int
+    namecounter: str
+    nohp: str
+    address: Optional[str]
+    timeclosing: Optional[time]
+    access_token: str
+    token_type: str
+
+
 class LoginData(BaseModel):
     nohp: str = Field(description="Unix key")
     otp: str
