@@ -10,6 +10,7 @@ class NamesCounterCreate(BaseModel):
     namecounter: str
     address: Optional[str]
     timeclosing: Optional[time]
+    location: Optional[str]
     otp: str
 
 
@@ -18,6 +19,7 @@ class NamesCounterUpdate(BaseModel):
     namecounter: Optional[str]
     address: Optional[str]
     timeclosing: Optional[time]
+    location: Optional[str]
     otp: Optional[str]
 
 
@@ -26,6 +28,7 @@ class NamesCounterRead(BaseModel):
     namecounter: str
     nohp: str
     address: Optional[str]
+    location: Optional[str]
     timeclosing: Optional[time]
 
     class Config:

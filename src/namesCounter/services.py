@@ -6,7 +6,6 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.orm import Session
 
 from .models import TNamesCounter
 from .schemas import LoginData
@@ -28,8 +27,8 @@ async def add_new_name_counter(
     except IntegrityError:
         await session.rollback()
         raise HTTPException(
-            status.HTTP_400_BAD_REQUEST,
-            detail=f"tnamecounter already exist",
+            detail="tnamecounter already exist",
+            status_code=status.HTTP_400_BAD_REQUEST,
         )
     await session.refresh(new_name_counter)
     return new_name_counter
@@ -56,10 +55,14 @@ async def get_names_counter_by_id(
 
 
 async def get_list_of_names_counters(
-    session: AsyncSession, limit: int, offset: int
+    session: AsyncSession, limit: int, offset: int, namecounter: str, address: str
 ) -> List[TNamesCounter]:
     statement = (
         select(TNamesCounter)
+        .filter(
+            TNamesCounter.namecounter.ilike(f"%{namecounter}%"),
+            TNamesCounter.address.ilike(f"%{address}%"),
+        )
         .limit(limit)
         .offset(offset)
         .order_by(TNamesCounter.namecounter)
@@ -81,6 +84,7 @@ async def update_names_counter(
     current_name_counter,
 ) -> TNamesCounter:
     names_counter = await get_names_counter_by_id(session, idcounter)
+    print(current_name_counter)
     if names_counter.nohp != current_name_counter.nohp:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -95,8 +99,8 @@ async def update_names_counter(
         await session.commit()
     except SQLAlchemyError:
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Unable to retrieve data at this time",
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
     await session.refresh(names_counter)
     return names_counter
@@ -111,14 +115,16 @@ async def login(session: AsyncSession, loginData: LoginData):
         names_counter = await session.scalar(statement)
         if names_counter is None:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, detail="namecounter not found"
+                detail="namecounter not found",
+                status_code=status.HTTP_400_BAD_REQUEST,
             )
     except SQLAlchemyError:
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Unable to retrieve data at this time",
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
     access_token = await create_access_tokens(names_counter)
+    print(names_counter)
     return {
         "access_token": access_token,
         "token_type": "Bearer",
