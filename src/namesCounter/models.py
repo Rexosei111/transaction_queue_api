@@ -15,7 +15,7 @@ class TNamesCounter(Base):
     namecounter = Column(String, nullable=False)
     address = Column(String)
     nohp = Column(String, unique=True, nullable=False)
-    otp = Column(String, unique=True, nullable=False)
+    otp = Column(String, nullable=False)
     location = Column(String)
     timeclosing = Column(Time, default=datetime.time(datetime.now()))
     transactionqueues = relationship(

@@ -7,9 +7,10 @@ from sqlalchemy.orm import DeclarativeBase
 from sqlalchemy.orm import sessionmaker
 
 
-settings = get_settings()
+# settings = get_settings()
+postgres_database_url = "postgresql+asyncpg://kwame:rexosei111@127.0.0.1:5432/test_db"
 
-engine = create_async_engine(settings.postgres_database_url, future=True, echo=True)
+engine = create_async_engine(postgres_database_url, future=True, echo=True)
 
 async_session_maker = sessionmaker(
     engine, class_=AsyncSession, expire_on_commit=False, autoflush=True
