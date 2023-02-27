@@ -54,6 +54,24 @@ async def get_names_counter_by_id(
     return names_counter
 
 
+async def get_names_counter_by_nohp(session: AsyncSession, nohp: str) -> TNamesCounter:
+    statement = select(TNamesCounter).where(TNamesCounter.nohp == nohp)
+    try:
+        names_counter = await session.scalar(statement)
+        if names_counter is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"namecounter with nohp {nohp} does not exist",
+            )
+    except SQLAlchemyError:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Unable to retrieve data at this time",
+        )
+
+    return names_counter
+
+
 async def get_list_of_names_counters(
     session: AsyncSession, limit: int, offset: int, namecounter: str, address: str
 ) -> List[TNamesCounter]:
@@ -84,7 +102,6 @@ async def update_names_counter(
     current_name_counter,
 ) -> TNamesCounter:
     names_counter = await get_names_counter_by_id(session, idcounter)
-    print(current_name_counter)
     if names_counter.nohp != current_name_counter.nohp:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -107,21 +124,23 @@ async def update_names_counter(
 
 
 async def login(session: AsyncSession, loginData: LoginData):
-    statement = select(TNamesCounter).where(
-        TNamesCounter.nohp == loginData.nohp,
-        TNamesCounter.otp == await encrypt_otp_with_md5(loginData.otp),
-    )
+    statement = select(TNamesCounter).where(TNamesCounter.nohp == loginData.nohp)
     try:
         names_counter = await session.scalar(statement)
         if names_counter is None:
             raise HTTPException(
-                detail="namecounter not found",
+                detail="namecounter does not exist",
                 status_code=status.HTTP_400_BAD_REQUEST,
             )
     except SQLAlchemyError:
         raise HTTPException(
             detail="Unable to retrieve data at this time",
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        )
+    if names_counter.otp != await encrypt_otp_with_md5(loginData.otp):
+        raise HTTPException(
+            detail="Invalid OTP",
+            status_code=status.HTTP_400_BAD_REQUEST,
         )
     access_token = await create_access_tokens(names_counter)
     print(names_counter)

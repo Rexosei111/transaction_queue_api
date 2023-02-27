@@ -27,20 +27,7 @@ from .services import get_list_of_names_counters
 from .services import get_names_counter_by_id
 from .services import login
 from .services import update_names_counter
-
-
-class CustomResponse(Response):
-    media_type = "application/json"
-
-    def render(self, content: typing.Any) -> bytes:
-        if content is None:
-            return b""
-        if isinstance(content, bytes):
-            return content
-        if isinstance(content, dict):
-            content = {**content, "status_code": self.status_code}
-            return json.dumps(content).encode(self.charset)
-        return content.encode(self.charset)
+from .utils import CustomResponse
 
 
 settings = get_settings()
@@ -114,7 +101,7 @@ async def register_name_counter(
     return await add_new_name_counter(session, data)
 
 
-@names_counter_router.patch("/{idcounter}", response_model=NamesCounterRead)
+@names_counter_router.put("/{idcounter}", response_model=NamesCounterRead)
 async def update_counter(
     *,
     idcounter: int,

@@ -6,12 +6,12 @@ class StatusModelBase(BaseModel):
 
 
 class StatusModel400(StatusModelBase):
-    status_code: int = 400
+    codestatus: int = 400
 
 
 class StatusModel401(StatusModelBase):
-    status_code: int = 401
+    codestatus: int = 401
 
 
 class StatusModel404(StatusModelBase):
-    status_code: int = 400
+    codestatus: int = 404

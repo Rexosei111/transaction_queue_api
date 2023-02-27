@@ -1,4 +1,6 @@
 import hashlib
+import json
+import typing
 from datetime import datetime
 from datetime import timedelta
 from typing import Union
@@ -7,6 +9,7 @@ from database import get_async_session
 from fastapi import Depends
 from fastapi import Header
 from fastapi import HTTPException
+from fastapi import Response
 from fastapi import status
 from jose import jwt
 from jose import JWTError
@@ -38,3 +41,17 @@ async def create_access_tokens(
         to_encode, settings.jwt_secret, algorithm=settings.algorithm
     )
     return encoded_jwt
+
+
+class CustomResponse(Response):
+    media_type = "application/json"
+
+    def render(self, content: typing.Any) -> bytes:
+        if content is None:
+            return b""
+        if isinstance(content, bytes):
+            return content
+        if isinstance(content, dict):
+            content = {**content, "codestatus": self.status_code}
+            return json.dumps(content).encode(self.charset)
+        return content.encode(self.charset)

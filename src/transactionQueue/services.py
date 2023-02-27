@@ -3,6 +3,7 @@ from typing import List
 
 from fastapi import HTTPException
 from fastapi import status
+from namesCounter.services import get_names_counter_by_nohp
 from sqlalchemy import select
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -37,11 +38,14 @@ async def get_queues(session: AsyncSession, data: TransactionQueueCreate):
 
 async def get_queues_by_query_params(
     session: AsyncSession,
-    idcounter: int,
+    # idcounter: int,
+    nohp,
     date: date,
     statusclient: str,
     statusnumber: str,
 ):
+    name_counter = await get_names_counter_by_nohp(session=session, nohp=nohp)
+    idcounter = name_counter.idcounter
     statement = (
         select(TransactionQueue)
         .where(
@@ -81,13 +85,15 @@ async def get_queue_by_id(session: AsyncSession, idqueue: int):
     return queue
 
 
-async def create_queue(
-    session: AsyncSession, data: TransactionQueueCreate, current_name_counter
-):
+async def create_queue(session: AsyncSession, data: TransactionQueueCreate):
+    current_name_counter = await get_names_counter_by_nohp(
+        session=session, nohp=data.nohp
+    )
     queue = TransactionQueue(
         idcounter=current_name_counter.idcounter,
         tnamecounter=current_name_counter,
         statusclient=data.statustclient,
+        statusnumber=data.statusnumber,
         date=data.date,
     )
     try:

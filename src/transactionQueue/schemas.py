@@ -27,7 +27,9 @@ class TransactionQueueUpdate(BaseModel):
 
 
 class TransactionQueueCreate(BaseModel):
+    nohp: str
     statustclient: str
+    statusnumber: Optional[str]
     date: Optional[date]
     timestamp: Optional[time]
 

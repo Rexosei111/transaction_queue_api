@@ -19,7 +19,7 @@ app.include_router(transaction_queue_router, tags=["Transaction Queue"])
 @app.exception_handler(StarletteHTTPException)
 async def http_exception_handler(request, exc):
     return JSONResponse(
-        content={"status_code": exc.status_code, "detail": exc.detail},
+        content={"codestatus": exc.status_code, "detail": exc.detail},
         status_code=exc.status_code,
     )
 
