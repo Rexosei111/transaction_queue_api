@@ -1,6 +1,7 @@
 from datetime import date
 from typing import Dict
 from typing import List
+from typing import Union
 
 from database import get_async_session
 from fastapi import APIRouter
@@ -85,7 +86,6 @@ async def get_list_of_queues(
         statusnumber=statusnumber,
     )
     queues_list: List[Dict[str, any]] = []
-    print(queues)
     for queue in queues:
         queues_list.append(transform_queue_data(queue))
 

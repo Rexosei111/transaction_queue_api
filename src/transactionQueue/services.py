@@ -67,6 +67,49 @@ async def get_queues_by_query_params(
     return queues
 
 
+async def get_queues_by_nohp_and_date(
+    session: AsyncSession,
+    # idcounter: int,
+    nohp,
+    date: date,
+):
+    name_counter = await get_names_counter_by_nohp(session=session, nohp=nohp)
+    idcounter = name_counter.idcounter
+    statement = (
+        select(TransactionQueue)
+        .where(TransactionQueue.idcounter == idcounter, TransactionQueue.date == date)
+        .options(selectinload(TransactionQueue.tnamecounter))
+    )
+    try:
+        queue = await session.scalar(statement)
+    except SQLAlchemyError:
+        raise HTTPException(
+            status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"unable to retrieve data at this time",
+        )
+    return queue
+
+
+async def get_queues_by_date(
+    session: AsyncSession,
+    date: date,
+):
+    statement = (
+        select(TransactionQueue)
+        .where(TransactionQueue.date == date)
+        .options(selectinload(TransactionQueue.tnamecounter))
+    )
+    try:
+        queues = await session.execute(statement)
+        queues = queues.all()
+    except SQLAlchemyError:
+        raise HTTPException(
+            status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"unable to retrieve data at this time",
+        )
+    return queues
+
+
 async def get_queue_by_id(session: AsyncSession, idqueue: int):
     statement = (
         select(TransactionQueue)
@@ -89,12 +132,18 @@ async def create_queue(session: AsyncSession, data: TransactionQueueCreate):
     current_name_counter = await get_names_counter_by_nohp(
         session=session, nohp=data.nohp
     )
-
+    existing_queue = await get_queues_by_nohp_and_date(
+        session, current_name_counter.nohp, date=data.date
+    )
+    if existing_queue is not None:
+        return existing_queue
+    queues = await get_queues_by_date(session, data.date)
     queue = TransactionQueue(
         idcounter=current_name_counter.idcounter,
         tnamecounter=current_name_counter,
         statusclient=data.statustclient,
         statusnumber=data.statusnumber,
+        yournumber=len(queues) + 1,
         timestamp=data.timestamp,
         date=data.date,
     )
