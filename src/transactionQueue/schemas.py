@@ -1,4 +1,5 @@
 from datetime import date
+from datetime import datetime
 from datetime import time
 from enum import Enum
 from typing import Optional
@@ -15,7 +16,7 @@ class TransactionQueueRead(BaseModel):
     yournumber: Optional[int]
     idcounter: int
     date: date
-    timestamp: time
+    timestamp: datetime
     namecounter: str
     nohp: str
     address: Optional[str]
@@ -36,7 +37,7 @@ class TransactionQueueCreate(BaseModel):
     statustclient: str
     statusnumber: Optional[str]
     date: Optional[date]
-    timestamp: Optional[time]
+    timestamp: Optional[datetime]
 
     class Config:
         orm_mode = True

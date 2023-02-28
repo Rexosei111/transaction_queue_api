@@ -8,6 +8,7 @@ from sqlalchemy import Integer
 from sqlalchemy import Sequence
 from sqlalchemy import String
 from sqlalchemy import Time
+from sqlalchemy import TIMESTAMP
 from sqlalchemy.orm import relationship
 
 
@@ -22,5 +23,5 @@ class TransactionQueue(Base):
     yournumber = Column(
         Integer, number_sec, server_default=number_sec.next_value(), nullable=False
     )
-    timestamp = Column(Time, default=datetime.time(datetime.now()))
+    timestamp = Column(TIMESTAMP, default=datetime.time(datetime.now()))
     date = Column(Date, default=datetime.date(datetime.now()))

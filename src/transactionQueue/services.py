@@ -89,11 +89,13 @@ async def create_queue(session: AsyncSession, data: TransactionQueueCreate):
     current_name_counter = await get_names_counter_by_nohp(
         session=session, nohp=data.nohp
     )
+
     queue = TransactionQueue(
         idcounter=current_name_counter.idcounter,
         tnamecounter=current_name_counter,
         statusclient=data.statustclient,
         statusnumber=data.statusnumber,
+        timestamp=data.timestamp,
         date=data.date,
     )
     try:
