@@ -14,9 +14,13 @@ class TransactionQueueRead(BaseModel):
     statusnumber: Optional[str]
     yournumber: Optional[int]
     idcounter: int
-    tnamecounter: NamesCounterRead
     date: date
     timestamp: time
+    namecounter: str
+    nohp: str
+    address: Optional[str]
+    location: Optional[str]
+    timeclosing: Optional[time]
 
     class Config:
         orm_mode = True
@@ -27,6 +31,7 @@ class TransactionQueueUpdate(BaseModel):
 
 
 class TransactionQueueCreate(BaseModel):
+    idcounter: int
     nohp: str
     statustclient: str
     statusnumber: Optional[str]
