@@ -18,7 +18,7 @@ class TransactionQueueRead(BaseModel):
     date: date
     timestamp: datetime
     namecounter: str
-    nohp: str
+    nohpclient: str
     address: Optional[str]
     location: Optional[str]
     timeclosing: Optional[time]
@@ -31,11 +31,26 @@ class TransactionQueueUpdate(BaseModel):
     statusnumber: str
 
 
+class StatusClientOptions(str, Enum):
+    emum = "emum"
+    bpjs = "bpjs"
+    asuransi = "asuransi"
+
+
+class StatusNumberOptions(str, Enum):
+    none = "none"
+    cancel = "cancel"
+    skip = "skip"
+    void = "void"
+    hold = "hold"
+    closing = "closing"
+
+
 class TransactionQueueCreate(BaseModel):
     idcounter: int
-    nohp: str
-    statustclient: str
-    statusnumber: Optional[str]
+    nohpclient: str
+    statustclient: StatusClientOptions
+    statusnumber: Optional[StatusNumberOptions] = StatusNumberOptions.none
     date: Optional[date]
     timestamp: Optional[datetime]
 

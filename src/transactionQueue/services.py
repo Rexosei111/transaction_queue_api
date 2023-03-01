@@ -3,6 +3,7 @@ from typing import List
 
 from fastapi import HTTPException
 from fastapi import status
+from namesCounter.services import get_names_counter_by_id
 from namesCounter.services import get_names_counter_by_nohp
 from sqlalchemy import select
 from sqlalchemy.exc import SQLAlchemyError
@@ -12,28 +13,6 @@ from sqlalchemy.orm import selectinload
 from .models import TransactionQueue
 from .schemas import TransactionQueueCreate
 from .schemas import TransactionQueueUpdate
-
-
-async def get_queues(session: AsyncSession, data: TransactionQueueCreate):
-    statement = (
-        select(TransactionQueue)
-        .where(
-            TransactionQueue.idcounter == data.idcounter,
-            TransactionQueue.date == data.date,
-            TransactionQueue.statusclient == data.statustclient,
-            TransactionQueue.statusnumber == data.statusnumber,
-        )
-        .options(selectinload(TransactionQueue.tnamecounter))
-    )
-    try:
-        queues = await session.execute(statement)
-        queues = queues.scalars().all()
-    except SQLAlchemyError:
-        raise HTTPException(
-            status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"unable to retrieve data at this time",
-        )
-    return queues
 
 
 async def get_queues_by_query_params(
@@ -129,20 +108,37 @@ async def get_queue_by_id(session: AsyncSession, idqueue: int):
 
 
 async def create_queue(session: AsyncSession, data: TransactionQueueCreate):
-    current_name_counter = await get_names_counter_by_nohp(
-        session=session, nohp=data.nohp
+    statement = (
+        select(TransactionQueue)
+        .where(
+            TransactionQueue.idcounter == data.idcounter,
+            TransactionQueue.nohpclient == data.nohpclient,
+            TransactionQueue.date == data.date,
+        )
+        .options(selectinload(TransactionQueue.tnamecounter))
     )
-    existing_queue = await get_queues_by_nohp_and_date(
-        session, current_name_counter.nohp, date=data.date
-    )
-    if existing_queue is not None:
+    try:
+        existing_queue = await session.execute(statement)
+        existing_queue = existing_queue.scalar_one_or_none()
+    except SQLAlchemyError as msg:
+        print(msg)
+        raise HTTPException(
+            status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Unable to retrieve data at this time",
+        )
+
+    if existing_queue:
         return existing_queue
     queues = await get_queues_by_date(session, data.date)
+    current_name_counter = await get_names_counter_by_id(
+        session=session, idcounter=data.idcounter
+    )
     queue = TransactionQueue(
         idcounter=current_name_counter.idcounter,
         tnamecounter=current_name_counter,
         statusclient=data.statustclient,
         statusnumber=data.statusnumber,
+        nohpclient=data.nohpclient,
         yournumber=len(queues) + 1,
         timestamp=data.timestamp,
         date=data.date,
@@ -151,7 +147,8 @@ async def create_queue(session: AsyncSession, data: TransactionQueueCreate):
         session.add(queue)
         await session.commit()
         await session.refresh(queue)
-    except SQLAlchemyError:
+    except SQLAlchemyError as msg:
+        print(msg)
         raise HTTPException(
             status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"unable to retrieve data at this time",
