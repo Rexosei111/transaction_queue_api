@@ -120,8 +120,7 @@ async def create_queue(session: AsyncSession, data: TransactionQueueCreate):
     try:
         existing_queue = await session.execute(statement)
         existing_queue = existing_queue.scalar_one_or_none()
-    except SQLAlchemyError as msg:
-        print(msg)
+    except SQLAlchemyError:
         raise HTTPException(
             status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Unable to retrieve data at this time",
@@ -136,7 +135,7 @@ async def create_queue(session: AsyncSession, data: TransactionQueueCreate):
     queue = TransactionQueue(
         idcounter=current_name_counter.idcounter,
         tnamecounter=current_name_counter,
-        statusclient=data.statustclient,
+        statusclient=data.statusclient,
         statusnumber=data.statusnumber,
         nohpclient=data.nohpclient,
         yournumber=len(queues) + 1,
@@ -158,16 +157,28 @@ async def create_queue(session: AsyncSession, data: TransactionQueueCreate):
 
 
 async def update_queue(
-    session: AsyncSession,
-    idqueue: int,
-    data: TransactionQueueUpdate,
-    current_name_counter,
+    session: AsyncSession, data: TransactionQueueUpdate, current_name_counter
 ):
-    queue = await get_queue_by_id(session, idqueue)
-    if queue.idcounter != current_name_counter.idcounter:
+    statement = (
+        select(TransactionQueue)
+        .where(
+            TransactionQueue.idcounter == data.idcounter,
+            TransactionQueue.nohpclient == data.nohpclient,
+            TransactionQueue.date == data.date,
+        )
+        .options(selectinload(TransactionQueue.tnamecounter))
+    )
+    try:
+        queue = await session.execute(statement)
+        queue = queue.scalar_one_or_none()
+    except SQLAlchemyError:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="You are unauthorized to perform this operaiton",
+            status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Unable to retrieve data at this time",
+        )
+    if queue is None:
+        raise HTTPException(
+            status.HTTP_404_NOT_FOUND, detail=f"Queue with these details does not exist"
         )
     queue.statusnumber = data.statusnumber
     try:

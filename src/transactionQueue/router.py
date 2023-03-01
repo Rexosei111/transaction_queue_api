@@ -54,16 +54,15 @@ async def add_queue(
 
 
 @transaction_queue_router.put(
-    "/{idqueue}", response_model=TransactionQueueRead, response_class=CustomResponse
+    "/", response_model=TransactionQueueRead, response_class=CustomResponse
 )
 async def edit_queue(
     *,
-    idqueue: int,
     session: AsyncSession = Depends(get_async_session),
     data: TransactionQueueUpdate,
     current_name_counter=Depends(get_current_name_counter),
 ):
-    queue = await update_queue(session, idqueue, data, current_name_counter)
+    queue = await update_queue(session, data, current_name_counter)
     queue_dict = transform_queue_data(queue)
     return queue_dict
 

@@ -9,6 +9,21 @@ from pydantic import BaseModel
 from pydantic import Field
 
 
+class StatusClientOptions(str, Enum):
+    emum = "emum"
+    bpjs = "bpjs"
+    asuransi = "asuransi"
+
+
+class StatusNumberOptions(str, Enum):
+    none = "none"
+    cancel = "cancel"
+    skip = "skip"
+    void = "void"
+    hold = "hold"
+    closing = "closing"
+
+
 class TransactionQueueRead(BaseModel):
     idqueue: int
     statusclient: str
@@ -28,28 +43,16 @@ class TransactionQueueRead(BaseModel):
 
 
 class TransactionQueueUpdate(BaseModel):
-    statusnumber: str
-
-
-class StatusClientOptions(str, Enum):
-    emum = "emum"
-    bpjs = "bpjs"
-    asuransi = "asuransi"
-
-
-class StatusNumberOptions(str, Enum):
-    none = "none"
-    cancel = "cancel"
-    skip = "skip"
-    void = "void"
-    hold = "hold"
-    closing = "closing"
+    idcounter: int
+    nohpclient: str
+    statusnumber: StatusNumberOptions
+    date: Optional[date]
 
 
 class TransactionQueueCreate(BaseModel):
     idcounter: int
     nohpclient: str
-    statustclient: StatusClientOptions
+    statusclient: StatusClientOptions
     statusnumber: Optional[StatusNumberOptions] = StatusNumberOptions.none
     date: Optional[date]
     timestamp: Optional[datetime]
