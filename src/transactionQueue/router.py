@@ -17,6 +17,8 @@ from .schemas import TransactionQueueRead
 from .schemas import TransactionQueueUpdate
 from .services import create_queue
 from .services import get_queues_by_query_params
+from .services import get_queues_by_statusnumber
+from .services import get_queues_count_by_date
 from .services import update_queue
 
 transaction_queue_router = APIRouter(prefix="/api/v1/queues")
@@ -26,7 +28,6 @@ def transform_queue_data(queue: TransactionQueue):
     queue_dict = queue.__dict__
     tnamecounter: TNamesCounter = queue_dict.pop("tnamecounter")
     tnamecounter: Dict[str, any] = tnamecounter.__dict__
-    print(tnamecounter)
     queue_dict = {**queue_dict, **tnamecounter}
     return queue_dict
 
@@ -42,7 +43,13 @@ async def add_queue(
     session: AsyncSession = Depends(get_async_session),
 ):
     queue = await create_queue(session, data)
-    queue_dict = transform_queue_data(queue)
+    queues_count = await get_queues_by_statusnumber(session)
+    queue_dict = {
+        **transform_queue_data(queue),
+        "endnumber": queue.yournumber,
+        "posnumber": queue.yournumber - queues_count,
+    }
+
     return queue_dict
 
 
@@ -62,30 +69,41 @@ async def edit_queue(
     data: TransactionQueueUpdate,
     current_name_counter=Depends(get_current_name_counter),
 ):
-    queue = await update_queue(session, data, current_name_counter)
-    queue_dict = transform_queue_data(queue)
+    queue = await update_queue(session, data, current_name_counter=current_name_counter)
+    queues_count = await get_queues_by_statusnumber(session)
+    endnumber = await get_queues_count_by_date(session=session, date=queue.date)
+    queue_dict = {
+        **transform_queue_data(queue),
+        "endnumber": endnumber,
+        "posnumber": endnumber - queues_count,
+    }
     return queue_dict
 
 
-@transaction_queue_router.get("/", response_model=List[TransactionQueueRead])
+@transaction_queue_router.get("/", response_model=TransactionQueueRead)
 async def get_list_of_queues(
     *,
     session: AsyncSession = Depends(get_async_session),
-    nohp: str,
-    # idcounter: int,
+    nohpclient: str,
+    idcounter: int,
     date: date,
     statusclient: str,
     statusnumber: str,
 ):
-    queues = await get_queues_by_query_params(
+    queue = await get_queues_by_query_params(
         session=session,
-        nohp=nohp,
+        nohpclient=nohpclient,
+        idcounter=idcounter,
         date=date,
         statusclient=statusclient,
         statusnumber=statusnumber,
     )
-    queues_list: List[Dict[str, any]] = []
-    for queue in queues:
-        queues_list.append(transform_queue_data(queue))
+    queues_count = await get_queues_by_statusnumber(session)
+    endnumber = await get_queues_count_by_date(session=session, date=date)
+    queue_dict = {
+        **transform_queue_data(queue),
+        "endnumber": endnumber,
+        "posnumber": endnumber - queues_count,
+    }
 
-    return queues_list
+    return queue_dict

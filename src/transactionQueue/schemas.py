@@ -37,6 +37,8 @@ class TransactionQueueRead(BaseModel):
     address: Optional[str]
     location: Optional[str]
     timeclosing: Optional[time]
+    posnumber: int
+    endnumber: int
 
     class Config:
         orm_mode = True
