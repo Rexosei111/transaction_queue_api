@@ -89,7 +89,8 @@ async def get_queues_count_by_date(
 
 async def get_queues_by_statusnumber(session: AsyncSession, date: date):
     statement = select(TransactionQueue).where(
-        TransactionQueue.statusnumber == StatusNumberOptions.none,
+        TransactionQueue.statusnumber
+        in [StatusNumberOptions.closing, StatusNumberOptions.hold],
         TransactionQueue.date == date,
     )
     try:

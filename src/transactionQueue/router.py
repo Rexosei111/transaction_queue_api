@@ -47,7 +47,7 @@ async def add_queue(
     queue_dict = {
         **transform_queue_data(queue),
         "endnumber": queue.yournumber,
-        "posnumber": queue.yournumber - queues_count,
+        "posnumber": queues_count,
     }
 
     return queue_dict
@@ -75,7 +75,7 @@ async def edit_queue(
     queue_dict = {
         **transform_queue_data(queue),
         "endnumber": endnumber,
-        "posnumber": endnumber - queues_count,
+        "posnumber": queues_count,
     }
     return queue_dict
 
@@ -103,7 +103,7 @@ async def get_list_of_queues(
     queue_dict = {
         **transform_queue_data(queue),
         "endnumber": endnumber,
-        "posnumber": endnumber - queues_count,
+        "posnumber": queues_count,
     }
 
     return queue_dict
