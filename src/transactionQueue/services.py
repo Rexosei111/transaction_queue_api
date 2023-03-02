@@ -87,11 +87,10 @@ async def get_queues_count_by_date(
     return queues
 
 
-async def get_queues_by_statusnumber(
-    session: AsyncSession,
-):
+async def get_queues_by_statusnumber(session: AsyncSession, date: date):
     statement = select(TransactionQueue).where(
-        TransactionQueue.statusnumber == StatusNumberOptions.none
+        TransactionQueue.statusnumber == StatusNumberOptions.none,
+        TransactionQueue.date == date,
     )
     try:
         queues = await session.execute(statement)
