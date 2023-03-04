@@ -71,7 +71,7 @@ async def get_names_counters(
     session: AsyncSession = Depends(get_async_session),
     limit: int = 10,
     offset: int = 0,
-    namecounter: str,
+    namecounter: str = "",
     address: str = "",
 ):
     """

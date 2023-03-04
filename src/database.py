@@ -8,8 +8,6 @@ from sqlalchemy.orm import sessionmaker
 
 
 settings = get_settings()
-
-
 engine = create_async_engine(settings.postgres_database_url, future=True, echo=False)
 
 async_session_maker = sessionmaker(

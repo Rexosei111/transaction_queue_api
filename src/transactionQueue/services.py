@@ -14,12 +14,11 @@ from .models import TransactionQueue
 from .schemas import StatusNumberOptions
 from .schemas import TransactionQueueCreate
 from .schemas import TransactionQueueUpdate
-
+from sqlalchemy.sql.expression import or_
 
 async def get_queues_by_query_params(
     session: AsyncSession,
     idcounter: int,
-    nohpclient,
     date: date,
     statusclient: str,
     statusnumber: str,
@@ -28,21 +27,20 @@ async def get_queues_by_query_params(
         select(TransactionQueue)
         .where(
             TransactionQueue.idcounter == idcounter,
-            TransactionQueue.nohpclient == nohpclient,
             TransactionQueue.date == date,
-            TransactionQueue.statusclient == statusclient,
-            TransactionQueue.statusnumber == statusnumber,
+            TransactionQueue.statusclient.like(f"%{statusclient}%"),
+            TransactionQueue.statusnumber.like(f"%{statusnumber}%")
         )
         .options(selectinload(TransactionQueue.tnamecounter))
     )
     try:
         queues = await session.execute(statement)
-        queues = queues.scalar_one_or_none()
-        if not queues:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Queue with these details does not exist",
-            )
+        queues = queues.scalars().all()
+        #if not queues:
+         #   raise HTTPException(
+          #      status_code=status.HTTP_404_NOT_FOUND,
+           #     detail="Queue with these details does not exist",
+#            )
     except SQLAlchemyError:
         raise HTTPException(
             status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -88,8 +86,8 @@ async def get_queues_count_by_date(
 
 
 async def get_queues_by_statusnumber(session: AsyncSession, date: date):
-    statement = select(TransactionQueue).where(
-        TransactionQueue.statusnumber == StatusNumberOptions.none,
+    statement = select(TransactionQueue).filter(or_(
+        TransactionQueue.statusnumber == "hold", TransactionQueue.statusnumber == "closing"),
         TransactionQueue.date == date,
     )
     try:
@@ -195,6 +193,9 @@ async def update_queue(
         raise HTTPException(
             status.HTTP_404_NOT_FOUND, detail=f"Queue with these details does not exist"
         )
+
+    if existing_queue.idcounter != current_name_counter.idcounter:
+        raise HTTPException(403, detail="You are unathorised to edit this queue")
     existing_queue.statusnumber = data.statusnumber
     try:
         session.add(existing_queue)

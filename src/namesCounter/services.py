@@ -78,8 +78,8 @@ async def get_list_of_names_counters(
     statement = (
         select(TNamesCounter)
         .filter(
-            TNamesCounter.namecounter.ilike(f"%{namecounter}%"),
-            TNamesCounter.address.ilike(f"%{address}%"),
+            TNamesCounter.namecounter.like(f"%{namecounter}%"),
+            TNamesCounter.address.like(f"%{address}%"),
         )
         .limit(limit)
         .offset(offset)
