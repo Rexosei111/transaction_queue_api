@@ -17,16 +17,20 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from .exceptions import StatusModel400
 from .exceptions import StatusModel401
 from .exceptions import StatusModel404
+from .schemas import ForgotOTP
 from .schemas import LoginData
 from .schemas import LoginRead
 from .schemas import NamesCounterCreate
 from .schemas import NamesCounterRead
 from .schemas import NamesCounterUpdate
+from .schemas import ResetOTP
 from .services import add_new_name_counter
+from .services import forgot_otp_value
 from .services import get_list_of_names_counters
 from .services import get_names_counter_by_id
 from .services import login
 from .services import update_names_counter
+from .services import update_otp
 from .utils import CustomResponse
 
 
@@ -71,7 +75,7 @@ async def get_names_counters(
     session: AsyncSession = Depends(get_async_session),
     limit: int = 10,
     offset: int = 0,
-    namecounter: str,
+    namecounter: str = "",
     address: str = "",
 ):
     """
@@ -123,3 +127,29 @@ async def login_counter(
     loginData: LoginData, session: AsyncSession = Depends(get_async_session)
 ):
     return await login(session, loginData)
+
+
+@names_counter_router.post("/forgot-otp", response_class=CustomResponse)
+async def forgot_otp(
+    data: ForgotOTP, session: AsyncSession = Depends(get_async_session)
+):
+    forgot_otp_token = await forgot_otp_value(session=session, nohp=data.nohp)
+    return {"token": forgot_otp_token}
+
+
+@names_counter_router.post("/reset-otp")
+async def reset_otp(data: ResetOTP, session: AsyncSession = Depends(get_async_session)):
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_404_NOT_FOUND, detail="Could not validate token"
+    )
+    try:
+        payload = jwt.decode(
+            data.token, settings.jwt_forgot_otp_secret, algorithms=[settings.algorithm]
+        )
+        nohp: str = payload.get("nohp")
+        if nohp is None:
+            raise credentials_exception
+    except JWTError:
+        raise credentials_exception
+    await update_otp(session=session, nohp=nohp, otp=data.new_otp)
+    return "OK"

@@ -80,19 +80,17 @@ async def edit_queue(
     return queue_dict
 
 
-@transaction_queue_router.get("/", response_model=TransactionQueueRead)
+@transaction_queue_router.get("/", response_model=List[TransactionQueueRead])
 async def get_list_of_queues(
     *,
     session: AsyncSession = Depends(get_async_session),
-    nohpclient: str,
     idcounter: int,
     date: date,
-    statusclient: str,
-    statusnumber: str,
+    statusclient: str = "",
+    statusnumber: str = "",
 ):
-    queue = await get_queues_by_query_params(
+    queues = await get_queues_by_query_params(
         session=session,
-        nohpclient=nohpclient,
         idcounter=idcounter,
         date=date,
         statusclient=statusclient,
@@ -100,10 +98,14 @@ async def get_list_of_queues(
     )
     queues_count = await get_queues_by_statusnumber(session, date=date)
     endnumber = await get_queues_count_by_date(session=session, date=date)
-    queue_dict = {
-        **transform_queue_data(queue),
-        "endnumber": endnumber,
-        "posnumber": queues_count,
-    }
+    queues_dict: List[Dict[str, any]] = []
+    for queue in queues:
+        queues_dict.append(
+            {
+                **transform_queue_data(queue),
+                "endnumber": endnumber,
+                "posnumber": queues_count,
+            }
+        )
 
-    return queue_dict
+    return queues_dict

@@ -9,6 +9,7 @@ from sqlalchemy import select
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
+from sqlalchemy.sql.expression import or_
 
 from .models import TransactionQueue
 from .schemas import StatusNumberOptions
@@ -19,7 +20,6 @@ from .schemas import TransactionQueueUpdate
 async def get_queues_by_query_params(
     session: AsyncSession,
     idcounter: int,
-    nohpclient,
     date: date,
     statusclient: str,
     statusnumber: str,
@@ -28,21 +28,15 @@ async def get_queues_by_query_params(
         select(TransactionQueue)
         .where(
             TransactionQueue.idcounter == idcounter,
-            TransactionQueue.nohpclient == nohpclient,
             TransactionQueue.date == date,
-            TransactionQueue.statusclient == statusclient,
-            TransactionQueue.statusnumber == statusnumber,
+            TransactionQueue.statusclient.like(f"%{statusclient}%"),
+            TransactionQueue.statusnumber.like(f"%{statusnumber}%"),
         )
         .options(selectinload(TransactionQueue.tnamecounter))
     )
     try:
         queues = await session.execute(statement)
-        queues = queues.scalar_one_or_none()
-        if not queues:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Queue with these details does not exist",
-            )
+        queues = queues.scalars().all()
     except SQLAlchemyError:
         raise HTTPException(
             status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -88,15 +82,16 @@ async def get_queues_count_by_date(
 
 
 async def get_queues_by_statusnumber(session: AsyncSession, date: date):
-    statement = select(TransactionQueue).where(
-        TransactionQueue.statusnumber
-        in [StatusNumberOptions.closing, StatusNumberOptions.hold],
+    statement = select(TransactionQueue).filter(
+        or_(
+            TransactionQueue.statusnumber == "closing",
+            TransactionQueue.statusnumber == "hold",
+        ),
         TransactionQueue.date == date,
     )
     try:
         queues = await session.execute(statement)
         queues_count = len(queues.all())
-        print(queues_count)
     except SQLAlchemyError:
         raise HTTPException(
             status.HTTP_500_INTERNAL_SERVER_ERROR,

@@ -35,10 +35,27 @@ async def create_access_tokens(
     if expires_delta:
         expire = datetime.utcnow() + expires_delta
     else:
-        expire = datetime.utcnow() + timedelta(minutes=40)
+        expire = datetime.utcnow() + timedelta(minutes=settings.jwt_expire_time)
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(
         to_encode, settings.jwt_secret, algorithm=settings.algorithm
+    )
+    return encoded_jwt
+
+
+async def create_forgot_otp_tokens(
+    data: TNamesCounter, expires_delta: Union[timedelta, None] = None
+):
+    to_encode = {"idcounter": data.idcounter, "nohp": data.nohp}
+    if expires_delta:
+        expire = datetime.utcnow() + expires_delta
+    else:
+        expire = datetime.utcnow() + timedelta(
+            minutes=settings.jwt_forgot_otp_expire_time
+        )
+    to_encode.update({"exp": expire})
+    encoded_jwt = jwt.encode(
+        to_encode, settings.jwt_forgot_otp_secret, algorithm=settings.algorithm
     )
     return encoded_jwt
 

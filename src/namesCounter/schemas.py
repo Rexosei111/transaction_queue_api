@@ -5,6 +5,15 @@ from pydantic import BaseModel
 from pydantic import Field
 
 
+class ForgotOTP(BaseModel):
+    nohp: str
+
+
+class ResetOTP(BaseModel):
+    new_otp: str
+    token: str
+
+
 class NamesCounterCreate(BaseModel):
     nohp: str
     namecounter: str

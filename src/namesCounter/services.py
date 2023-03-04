@@ -12,6 +12,7 @@ from .schemas import LoginData
 from .schemas import NamesCounterCreate
 from .schemas import NamesCounterUpdate
 from .utils import create_access_tokens
+from .utils import create_forgot_otp_tokens
 from .utils import encrypt_otp_with_md5
 
 
@@ -143,9 +144,27 @@ async def login(session: AsyncSession, loginData: LoginData):
             status_code=status.HTTP_400_BAD_REQUEST,
         )
     access_token = await create_access_tokens(names_counter)
-    print(names_counter)
+
     return {
         "access_token": access_token,
         "token_type": "Bearer",
         **names_counter.__dict__,
     }
+
+
+async def forgot_otp_value(session: AsyncSession, nohp: str):
+    namecounter = await get_names_counter_by_nohp(nohp=nohp, session=session)
+    forgot_otp_token = await create_forgot_otp_tokens(data=namecounter)
+    return forgot_otp_token
+
+
+async def update_otp(session: AsyncSession, nohp: str, otp: str):
+    namecounter = await get_names_counter_by_nohp(nohp=nohp, session=session)
+    namecounter.otp = await encrypt_otp_with_md5(otp)
+    try:
+        session.add(namecounter)
+        await session.commit()
+        await session.refresh(namecounter)
+    except SQLAlchemyError:
+        raise HTTPException(500, detail="Unable to update otp at this time")
+    return True
