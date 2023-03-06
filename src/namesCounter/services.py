@@ -97,16 +97,16 @@ async def get_list_of_names_counters(
 
 async def update_names_counter(
     session: AsyncSession,
-    idcounter: int,
+    nohp: str,
     data: NamesCounterUpdate,
-    current_name_counter,
+    
 ) -> TNamesCounter:
-    names_counter = await get_names_counter_by_id(session, idcounter)
-    if names_counter.nohp != current_name_counter.nohp:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=f"You are unautorized to perfom this operation",
-        )
+    names_counter = await get_names_counter_by_nohp(session, nohp)
+   # if names_counter.nohp != current_name_counter.nohp:
+    #    raise HTTPException(
+     #       status_code=status.HTTP_401_UNAUTHORIZED,
+      #      detail=f"You are unautorized to perfom this operation",
+       # )
     for key, value in data.dict(exclude_unset=True).items():
         if key == "otp":
             value = await encrypt_otp_with_md5(value)

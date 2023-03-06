@@ -49,12 +49,13 @@ class TransactionQueueUpdate(BaseModel):
     nohpclient: str
     statusnumber: StatusNumberOptions
     date: Optional[date]
+    statusclient: str
 
 
 class TransactionQueueCreate(BaseModel):
     idcounter: int
     nohpclient: str
-    statusclient: StatusClientOptions
+    statusclient: str
     statusnumber: Optional[StatusNumberOptions] = StatusNumberOptions.none
     date: Optional[date]
     timestamp: Optional[datetime]

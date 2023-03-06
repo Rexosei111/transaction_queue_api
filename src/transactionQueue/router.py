@@ -36,7 +36,7 @@ def transform_queue_data(queue: TransactionQueue):
     "/",
     response_model=TransactionQueueRead,
     response_class=CustomResponse,
-    status_code=201,
+    status_code=200,
 )
 async def add_queue(
     data: TransactionQueueCreate,

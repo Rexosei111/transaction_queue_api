@@ -196,7 +196,8 @@ async def update_queue(
 
     if existing_queue.idcounter != current_name_counter.idcounter:
         raise HTTPException(403, detail="You are unathorised to edit this queue")
-    existing_queue.statusnumber = data.statusnumber
+    for key, value in data.dict().items():
+        setattr(existing_queue, key, value)
     try:
         session.add(existing_queue)
         await session.commit()

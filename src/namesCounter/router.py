@@ -101,18 +101,17 @@ async def register_name_counter(
     return await add_new_name_counter(session, data)
 
 
-@names_counter_router.put("/{idcounter}", response_model=NamesCounterRead)
+@names_counter_router.put("/{nohp}", response_model=NamesCounterRead, response_class=CustomResponse)
 async def update_counter(
     *,
-    idcounter: int,
+    nohp: str,
     session: AsyncSession = Depends(get_async_session),
-    update_data: NamesCounterUpdate,
-    current_name_counter=Depends(get_current_name_counter),
+    update_data: NamesCounterUpdate
 ):
     """
     Update name counter endpoint"""
     return await update_names_counter(
-        session, idcounter, update_data, current_name_counter
+        session, nohp, update_data
     )
 
 
