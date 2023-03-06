@@ -5,17 +5,10 @@ from datetime import datetime
 from datetime import timedelta
 from typing import Union
 
-from database import get_async_session
-from fastapi import Depends
-from fastapi import Header
-from fastapi import HTTPException
 from fastapi import Response
-from fastapi import status
 from jose import jwt
-from jose import JWTError
 from namesCounter.models import TNamesCounter
 from settings import get_settings
-from sqlalchemy.ext.asyncio import AsyncSession
 
 settings = get_settings()
 
@@ -35,7 +28,7 @@ async def create_access_tokens(
     if expires_delta:
         expire = datetime.utcnow() + expires_delta
     else:
-        expire = datetime.utcnow() + timedelta(minutes=40)
+        expire = datetime.utcnow() + timedelta(minutes=settings.jwt_expire_time)
     to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(
         to_encode, settings.jwt_secret, algorithm=settings.algorithm

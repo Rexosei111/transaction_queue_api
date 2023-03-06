@@ -1,6 +1,4 @@
 import uvicorn
-from database import create_db_tables
-from database import drop_db_tables
 from fastapi import FastAPI
 from fastapi import Request
 from fastapi.encoders import jsonable_encoder
@@ -39,12 +37,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
-
-@app.on_event("startup")
-async def startup_actions():
-    # await drop_db_tables()
-    await create_db_tables()
 
 
 if __name__ == "__main__":

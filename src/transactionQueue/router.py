@@ -1,7 +1,6 @@
 from datetime import date
 from typing import Dict
 from typing import List
-from typing import Union
 
 from database import get_async_session
 from fastapi import APIRouter
@@ -17,8 +16,8 @@ from .schemas import TransactionQueueRead
 from .schemas import TransactionQueueUpdate
 from .services import create_queue
 from .services import get_queues_by_query_params
-from .services import get_queues_by_statusnumber
 from .services import get_queues_count_by_date
+from .services import get_queues_count_by_statusnumber
 from .services import update_queue
 
 transaction_queue_router = APIRouter(prefix="/api/v1/queues")
@@ -43,7 +42,7 @@ async def add_queue(
     session: AsyncSession = Depends(get_async_session),
 ):
     queue = await create_queue(session, data)
-    queues_count = await get_queues_by_statusnumber(session, date=data.date)
+    queues_count = await get_queues_count_by_statusnumber(session, date=data.date)
     queue_dict = {
         **transform_queue_data(queue),
         "endnumber": queue.yournumber,
@@ -51,13 +50,6 @@ async def add_queue(
     }
 
     return queue_dict
-
-
-# @transaction_queue_router.post("/queue", response_model=List[TransactionQueueRead])
-# async def get_queues_obj(
-#     *, session: AsyncSession = Depends(get_async_session), data: TransactionQueueCreate
-# ):
-#     return await get_queues(session, data)
 
 
 @transaction_queue_router.put(
@@ -70,7 +62,7 @@ async def edit_queue(
     current_name_counter=Depends(get_current_name_counter),
 ):
     queue = await update_queue(session, data, current_name_counter=current_name_counter)
-    queues_count = await get_queues_by_statusnumber(session, date=data.date)
+    queues_count = await get_queues_count_by_statusnumber(session, date=data.date)
     endnumber = await get_queues_count_by_date(session=session, date=queue.date)
     queue_dict = {
         **transform_queue_data(queue),
@@ -96,7 +88,7 @@ async def get_list_of_queues(
         statusclient=statusclient,
         statusnumber=statusnumber,
     )
-    queues_count = await get_queues_by_statusnumber(session, date=date)
+    queues_count = await get_queues_count_by_statusnumber(session, date=date)
     endnumber = await get_queues_count_by_date(session=session, date=date)
     queues_dict: List[Dict[str, any]] = []
     for queue in queues:

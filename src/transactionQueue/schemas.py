@@ -4,15 +4,7 @@ from datetime import time
 from enum import Enum
 from typing import Optional
 
-from namesCounter.schemas import NamesCounterRead
 from pydantic import BaseModel
-from pydantic import Field
-
-
-class StatusClientOptions(str, Enum):
-    emum = "emum"
-    bpjs = "bpjs"
-    asuransi = "asuransi"
 
 
 class StatusNumberOptions(str, Enum):

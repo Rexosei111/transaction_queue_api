@@ -7,7 +7,6 @@ from fastapi import APIRouter
 from fastapi import Depends
 from fastapi import Header
 from fastapi import HTTPException
-from fastapi import Response
 from fastapi import status
 from jose import jwt
 from jose import JWTError
@@ -89,7 +88,7 @@ async def get_names_counters(
 @names_counter_router.post(
     "/",
     response_model=NamesCounterRead,
-    status_code=status.HTTP_201_CREATED,
+    status_code=status.HTTP_200_OK,
     response_class=CustomResponse,
 )
 async def register_name_counter(
@@ -101,18 +100,18 @@ async def register_name_counter(
     return await add_new_name_counter(session, data)
 
 
-@names_counter_router.put("/{nohp}", response_model=NamesCounterRead, response_class=CustomResponse)
+@names_counter_router.put(
+    "/{nohp}", response_model=NamesCounterRead, response_class=CustomResponse
+)
 async def update_counter(
     *,
     nohp: str,
     session: AsyncSession = Depends(get_async_session),
-    update_data: NamesCounterUpdate
+    update_data: NamesCounterUpdate,
 ):
     """
     Update name counter endpoint"""
-    return await update_names_counter(
-        session, nohp, update_data
-    )
+    return await update_names_counter(session, nohp, update_data)
 
 
 @names_counter_router.post(
