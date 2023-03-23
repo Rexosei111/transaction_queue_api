@@ -10,7 +10,7 @@
 ### Database tables creation
 
 - Change into `/src` folder.
-- Run `alembic updgrade head` to create the neccessary database tables.
+- Run `alembic upgrade head` to create the neccessary database tables.
 
 ## Start Development Server
 

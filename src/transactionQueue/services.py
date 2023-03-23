@@ -79,6 +79,24 @@ async def get_queues_count_by_statusnumber(session: AsyncSession, date: date):
     return queues_count
 
 
+async def get_queues_count_by_idcounter_and_date(
+    session: AsyncSession, idcounter: int, date: date
+):
+    statement = select(TransactionQueue).filter(
+        TransactionQueue.idcounter == idcounter,
+        TransactionQueue.date == date,
+    )
+    try:
+        queues = await session.execute(statement)
+        queues_count = len(queues.all())
+    except SQLAlchemyError:
+        raise HTTPException(
+            status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"unable to retrieve data at this time",
+        )
+    return queues_count
+
+
 async def get_queue_by_id(session: AsyncSession, idqueue: int):
     statement = (
         select(TransactionQueue)

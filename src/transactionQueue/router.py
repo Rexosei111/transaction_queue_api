@@ -17,6 +17,7 @@ from .schemas import TransactionQueueUpdate
 from .services import create_queue
 from .services import get_queues_by_query_params
 from .services import get_queues_count_by_date
+from .services import get_queues_count_by_idcounter_and_date
 from .services import get_queues_count_by_statusnumber
 from .services import update_queue
 
@@ -43,9 +44,12 @@ async def add_queue(
 ):
     queue = await create_queue(session, data)
     queues_count = await get_queues_count_by_statusnumber(session, date=data.date)
+    queues_count_by_idcounter_and_date = await get_queues_count_by_idcounter_and_date(
+        session, idcounter=data.idcounter, date=data.date
+    )
     queue_dict = {
         **transform_queue_data(queue),
-        "endnumber": queue.yournumber,
+        "endnumber": queues_count_by_idcounter_and_date,
         "posnumber": queues_count,
     }
 
@@ -63,10 +67,12 @@ async def edit_queue(
 ):
     queue = await update_queue(session, data, current_name_counter=current_name_counter)
     queues_count = await get_queues_count_by_statusnumber(session, date=data.date)
-    endnumber = await get_queues_count_by_date(session=session, date=queue.date)
+    queues_count_by_idcounter_and_date = await get_queues_count_by_idcounter_and_date(
+        session, idcounter=data.idcounter, date=queue.date
+    )
     queue_dict = {
         **transform_queue_data(queue),
-        "endnumber": endnumber,
+        "endnumber": queues_count_by_idcounter_and_date,
         "posnumber": queues_count,
     }
     return queue_dict
@@ -89,7 +95,9 @@ async def get_list_of_queues(
         statusnumber=statusnumber,
     )
     queues_count = await get_queues_count_by_statusnumber(session, date=date)
-    endnumber = await get_queues_count_by_date(session=session, date=date)
+    endnumber = await get_queues_count_by_idcounter_and_date(
+        session, idcounter=idcounter, date=date
+    )
     queues_dict: List[Dict[str, any]] = []
     for queue in queues:
         queues_dict.append(
