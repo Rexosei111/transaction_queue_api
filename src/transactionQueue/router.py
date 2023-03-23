@@ -43,7 +43,9 @@ async def add_queue(
     session: AsyncSession = Depends(get_async_session),
 ):
     queue = await create_queue(session, data)
-    queues_count = await get_queues_count_by_statusnumber(session, date=data.date)
+    queues_count = await get_queues_count_by_statusnumber(
+        session, idcounter=data.idcounter, date=data.date
+    )  # type: ignore
     queues_count_by_idcounter_and_date = await get_queues_count_by_idcounter_and_date(
         session, idcounter=data.idcounter, date=data.date
     )
@@ -66,7 +68,9 @@ async def edit_queue(
     current_name_counter=Depends(get_current_name_counter),
 ):
     queue = await update_queue(session, data, current_name_counter=current_name_counter)
-    queues_count = await get_queues_count_by_statusnumber(session, date=data.date)
+    queues_count = await get_queues_count_by_statusnumber(
+        session, idcounter=data.idcounter, date=data.date
+    )
     queues_count_by_idcounter_and_date = await get_queues_count_by_idcounter_and_date(
         session, idcounter=data.idcounter, date=queue.date
     )
@@ -94,7 +98,9 @@ async def get_list_of_queues(
         statusclient=statusclient,
         statusnumber=statusnumber,
     )
-    queues_count = await get_queues_count_by_statusnumber(session, date=date)
+    queues_count = await get_queues_count_by_statusnumber(
+        session, idcounter=idcounter, date=date
+    )
     endnumber = await get_queues_count_by_idcounter_and_date(
         session, idcounter=idcounter, date=date
     )
