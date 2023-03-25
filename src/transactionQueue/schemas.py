@@ -5,6 +5,7 @@ from enum import Enum
 from typing import Optional
 
 from pydantic import BaseModel
+from pydantic import validator
 
 
 class StatusNumberOptions(str, Enum):
@@ -43,6 +44,12 @@ class TransactionQueueUpdate(BaseModel):
     date: Optional[date]
     statusclient: str
 
+    @validator("date")
+    def date_must_not_be_in_past(cls, v):
+        if v < datetime.now():
+            raise ValueError("Date cannot be in the past")
+        return v
+
 
 class TransactionQueueCreate(BaseModel):
     idcounter: int
@@ -51,6 +58,18 @@ class TransactionQueueCreate(BaseModel):
     statusnumber: Optional[StatusNumberOptions] = StatusNumberOptions.none
     date: Optional[date]
     timestamp: Optional[datetime]
+
+    @validator("timestamp")
+    def timestamp_must_not_be_in_past(cls, v):  # type: ignore
+        if v < datetime.now():
+            raise ValueError("Date cannot be in the past")
+        return v
+
+    @validator("date")
+    def date_must_not_be_in_past(cls, v):
+        if v < datetime.date(datetime.now()):
+            raise ValueError("Date cannot be in the past")
+        return v
 
     class Config:
         orm_mode = True

@@ -1,4 +1,5 @@
 from datetime import date
+from datetime import datetime
 
 from fastapi import HTTPException
 from fastapi import status
@@ -139,10 +140,29 @@ async def create_queue(session: AsyncSession, data: TransactionQueueCreate):
 
     if existing_queue:
         return existing_queue
-    queues_count = await get_queues_count_by_date(session, data.date)
     current_name_counter = await get_names_counter_by_id(
         session=session, idcounter=data.idcounter
     )
+    closing_time = datetime.strptime(
+        str(current_name_counter.timeclosing), "%H:%M:%S"  # type: ignore
+    )
+    queue_time = data.__dict__.get("timestamp", None)
+    if queue_time is None:
+        queue_time = datetime.now()
+        current_time = datetime.strptime(
+            str(datetime.time(queue_time)),  # type: ignore
+            "%H:%M:%S.%f",
+        )
+    else:
+        current_time = datetime.strptime(str(datetime.time(queue_time)), "%H:%M:%S")
+    if current_time > closing_time:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You are not allowed to take ticket at this time",
+        )
+    queues_count = await get_queues_count_by_idcounter_and_date(
+        session, idcounter=current_name_counter.idcounter, date=data.date  # type: ignore
+    )  # type: ignore
     queue = TransactionQueue(
         idcounter=current_name_counter.idcounter,
         tnamecounter=current_name_counter,
@@ -162,7 +182,7 @@ async def create_queue(session: AsyncSession, data: TransactionQueueCreate):
             status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"unable to retrieve data at this time",
         )
-    queue = await get_queue_by_id(session, queue.idqueue)
+    queue = await get_queue_by_id(session, queue.idqueue)  # type: ignore
     return queue
 
 
