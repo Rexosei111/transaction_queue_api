@@ -26,7 +26,7 @@ transaction_queue_router = APIRouter(prefix="/api/v1/queues")
 
 def transform_queue_data(queue: TransactionQueue):
     queue_dict = queue.__dict__
-    tnamecounter: TNamesCounter = queue_dict.pop("tnamecounter")
+    tnamecounter: TNamesCounter = queue_dict.pop("tnamecounter")  # type: ignore
     tnamecounter: Dict[str, any] = tnamecounter.__dict__
     queue_dict = {**queue_dict, **tnamecounter}
     return queue_dict
