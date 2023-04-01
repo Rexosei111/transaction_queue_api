@@ -46,7 +46,7 @@ class TransactionQueueUpdate(BaseModel):
 
     @validator("date")
     def date_must_not_be_in_past(cls, v):
-        if v < datetime.now():
+        if v < datetime.date(datetime.now()):
             raise ValueError("Date cannot be in the past")
         return v
 
